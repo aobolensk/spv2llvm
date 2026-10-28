@@ -1,0 +1,49 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: "0 3 * * *"
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install dependencies
+        run: sudo apt-get update && sudo apt-get install -y ninja-build
+
+      - name: Clone LLVM main
+        run: |
+          git clone --depth 1 https://github.com/llvm/llvm-project.git
+          git -C llvm-project log -1 --format='LLVM revision: %H'
+
+      - name: Build LLVM and MLIR
+        run: |
+          cmake -S llvm-project/llvm -B llvm-build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DLLVM_ENABLE_ASSERTIONS=ON \
+            -DLLVM_ENABLE_PROJECTS=mlir \
+            -DLLVM_TARGETS_TO_BUILD=host
+          ninja -C llvm-build \
+            MLIRSPIRVDialect \
+            MLIRSPIRVDeserialization \
+            MLIRSPIRVToLLVM \
+            MLIRReconcileUnrealizedCasts \
+            MLIRLLVMDialect \
+            MLIRBuiltinToLLVMIRTranslation \
+            MLIRLLVMToLLVMIRTranslation \
+            MLIRTargetLLVMIRExport \
+            MLIRPass \
+            MLIRIR \
+            LLVMBitWriter \
+            LLVMSupport
+
+      - name: Build spv2llvm-mlir
+        run: |
+          cmake -S . -B build -G Ninja \
+            -DLLVM_DIR=$PWD/llvm-build/lib/cmake/llvm
+          ninja -C build
