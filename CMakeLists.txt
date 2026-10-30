@@ -24,3 +24,4 @@ target_link_libraries(spv2llvm-mlir PRIVATE
   MLIRIR
   LLVMBitWriter
   LLVMSupport)
+target_link_options(spv2llvm-mlir PRIVATE -static-libstdc++ -static-libgcc -no-pie)
