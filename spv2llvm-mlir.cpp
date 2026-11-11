@@ -3,7 +3,9 @@
 //
 // Pipeline (equivalent to the CLI chain):
 //   mlir-translate --deserialize-spirv in.spv
-//   | mlir-opt --convert-spirv-to-llvm=client-api=<API> --reconcile-unrealized-casts
+//   | mlir-opt
+//       --convert-spirv-to-llvm="client-api=<API> allow-pattern-rollback=false"
+//       --reconcile-unrealized-casts
 //   | <take the nested module produced from spirv.module>
 //   | mlir-translate --mlir-to-llvmir
 // The nested module is translated directly, as mlir-runner
@@ -92,6 +94,7 @@ int main(int argc, char **argv) {
   PassManager pm(&context);
   ConvertSPIRVToLLVMPassOptions opts;
   opts.clientAPI = api;
+  opts.allowPatternRollback = false;
   pm.addPass(createConvertSPIRVToLLVMPass(opts));
   pm.addPass(createReconcileUnrealizedCastsPass());
   if (failed(pm.run(*top)))
