@@ -2,7 +2,8 @@
 // bitcode, in one process, using upstream MLIR only.
 //
 // Pipeline (equivalent to the CLI chain):
-//   mlir-translate --deserialize-spirv in.spv
+//   mlir-translate --deserialize-spirv --spirv-structurize-control-flow=false
+//       in.spv
 //   | mlir-opt
 //       --convert-spirv-to-llvm="client-api=<API> allow-pattern-rollback=false"
 //       --reconcile-unrealized-casts
@@ -70,7 +71,10 @@ int main(int argc, char **argv) {
   auto words = llvm::ArrayRef(
       reinterpret_cast<const uint32_t *>((*buf)->getBufferStart()),
       size / sizeof(uint32_t));
-  OwningOpRef<spirv::ModuleOp> spvModule = spirv::deserialize(words, &context);
+  spirv::DeserializationOptions deserOpts;
+  deserOpts.enableControlFlowStructurization = false;
+  OwningOpRef<spirv::ModuleOp> spvModule =
+      spirv::deserialize(words, &context, deserOpts);
   if (!spvModule || failed(verify(*spvModule)))
     return 1;
 
