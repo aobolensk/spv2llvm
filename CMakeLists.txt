@@ -9,7 +9,7 @@ include(HandleLLVMOptions)
 
 include_directories(${LLVM_INCLUDE_DIRS} ${MLIR_INCLUDE_DIRS})
 
-add_executable(spv2llvm-mlir spv2llvm-mlir.cpp)
+add_llvm_executable(spv2llvm-mlir spv2llvm-mlir.cpp)
 llvm_update_compile_flags(spv2llvm-mlir)
 target_link_libraries(spv2llvm-mlir PRIVATE
   MLIRSPIRVDialect
